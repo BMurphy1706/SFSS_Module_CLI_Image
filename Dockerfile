@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y \
     make \
     file \
     strace \
-    vim \
-    nano \
+    curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Create helper scripts for simplified workflow
@@ -23,6 +23,20 @@ RUN echo '#!/bin/bash\nif [ -z "$1" ]; then echo "Usage: dbg-build <file.c> [out
     echo '#!/bin/bash\nif [ -z "$1" ]; then echo "Usage: dbg-client <binary>"; exit 1; fi\ngdb "$1" -ex "set disassembly-flavor intel" -ex "target remote :1234"' > /usr/local/bin/dbg-client && \
     chmod +x /usr/local/bin/dbg-build /usr/local/bin/dbg-server /usr/local/bin/dbg-client
 
+# Neovim (x86_64 build)
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz \
+    && tar -C /opt -xzf nvim-linux-x86_64.tar.gz \
+    && rm nvim-linux-x86_64.tar.gz \
+    && ln -s /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+
+# Optional: install tree-sitter CLI, ripgrep, fd if you have binaries or packages
+# For now, keeping it minimal; add more installs here if needed.
+
+# Neovim config
+WORKDIR /workspace
+COPY nvim /root/.config/nvim
+
+# Code directory (mounted via volume in compose)
 WORKDIR /root/code
 
 CMD ["tail", "-f", "/dev/null"]
