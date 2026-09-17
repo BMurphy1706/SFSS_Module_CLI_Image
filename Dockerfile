@@ -25,4 +25,4 @@ RUN echo '#!/bin/bash\nif [ -z "$1" ]; then echo "Usage: dbg-build <file.c> [out
 
 WORKDIR /root/code
 
-CMD ["bash"]
+CMD ["tail", "-f", "/dev/null"]
