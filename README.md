@@ -24,6 +24,7 @@ This is intentional because the module labs require an x86 environment. The deve
 ```text
 sfss_headless_cli/
 ├── Dockerfile
+├── compose.yml
 ├── README.md
 └── nvim/
     └── init.lua
@@ -75,6 +76,8 @@ apt-get install -y \
     clangd
 ```
 
+The container’s default command is an interactive shell (`/bin/bash -l`) so the container stays alive and you can compile, run, and debug your programs manually.
+
 ## Neovim
 
 Neovim is installed directly from the official Neovim release rather than Ubuntu's package repository.
@@ -114,71 +117,106 @@ No additional language servers or Mason are required.
 
 Because the module labs require x86-64, explicitly build the image for `linux/amd64`.
 
-From the directory containing the `Dockerfile`:
+From the directory containing the `Dockerfile` and `compose.yml`:
 
 ```bash
-docker build --platform linux/amd64 -t sfss_headless_cli .
+docker compose build
 ```
+
+This uses the `platforms: [linux/amd64]` setting in `compose.yml`.
 
 ## Running
 
-Run the container using the same x86-64 platform:
+Start the environment with:
 
 ```bash
-docker run --platform linux/amd64 -it --name sfss_headless_cli sfss_headless_cli
+docker compose up
 ```
 
-The container starts in:
+This:
 
-```text
-/workspace
-```
+- Builds (if needed) and starts the `linux-x86` service.
+- Mounts the current directory into `/root/code` in the container.
+- Drops you into an interactive shell at `/root/code`.
 
-Check the architecture with:
+Inside the container:
 
 ```bash
+# Check architecture
 uname -m
+# Expected: x86_64
+
+# Compile your program (example)
+gcc -g test.c -o sfss_headless_cli
+
+# Run it
+./sfss_headless_cli
+
+# Debug it
+gdb ./sfss_headless_cli
 ```
 
-It should output:
-
-```text
-x86_64
-```
-
-Neovim can then be launched with:
+Neovim can be launched with:
 
 ```bash
 nvim
 ```
 
+Your host files are available under `/root/code`.
+
 ## Reopening the Container
 
-After exiting the container:
+After exiting the shell, the container remains created. To reattach:
 
 ```bash
-docker start -ai sfss_headless_cli
+docker compose start
+docker compose exec linux-x86 bash
 ```
 
-The platform does not need to be specified when restarting an existing container.
+Or in one step:
+
+```bash
+docker compose exec linux-x86 bash
+```
+
+The platform does not need to be specified when using an existing container.
 
 ## Rebuilding
 
-If the `Dockerfile` or Neovim configuration changes, rebuild the image:
+If the `Dockerfile`, `compose.yml`, or Neovim configuration changes, rebuild the image:
 
 ```bash
+docker compose up --build
+```
+
+If you ever need to fully recreate the container:
+
+```bash
+docker compose down
+docker compose up --build --force-recreate
+```
+
+## Using Docker CLI Directly (Optional)
+
+You can still use plain `docker` commands if you prefer:
+
+```bash
+# Build
 docker build --platform linux/amd64 -t sfss_headless_cli .
+
+# Run with GDB-friendly options
+docker run -it \
+  --platform linux/amd64 \
+  --cap-add SYS_PTRACE \
+  --security-opt seccomp=unconfined \
+  --name sfss_headless_cli \
+  -v "$PWD":/root/code \
+  sfss_headless_cli
 ```
 
-If a container with the same name already exists, remove it first:
+Inside, compile and debug as usual:
 
 ```bash
-docker rm -f sfss_headless_cli
+gcc -g test.c -o sfss_headless_cli
+gdb ./sfss_headless_cli
 ```
-
-Then create a new container:
-
-```bash
-docker run --platform linux/amd64 -it --name sfss_headless_cli sfss_headless_cli
-```
-

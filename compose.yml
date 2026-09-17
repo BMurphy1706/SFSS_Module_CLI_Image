@@ -1,0 +1,26 @@
+services:
+  linux-x86:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+
+    platform: linux/amd64
+
+    container_name: sfss_headless_cli
+
+    working_dir: /root/code
+
+    volumes:
+      - .:/root/code
+
+    # Allow GDB / ptrace
+    cap_add:
+      - SYS_PTRACE
+
+    security_opt:
+      - seccomp:unconfined
+
+    stdin_open: true
+    tty: true

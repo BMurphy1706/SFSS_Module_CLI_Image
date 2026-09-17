@@ -1,107 +1,39 @@
-FROM ubuntu:24.04
+FROM --platform=linux/amd64 ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# ==================================================
-# Base development tools
-# ==================================================
-
+# Install core dev tools
 RUN apt-get update && apt-get install -y \
-    bash \
-    bash-completion \
-    ca-certificates \
-    curl \
-    wget \
-    git \
-    unzip \
-    zip \
     build-essential \
     gcc \
     g++ \
-    make \
     gdb \
     clang \
     clangd \
-    ripgrep \
-    fd-find \
-    tree \
-    file \
-    less \
-    sudo \
-    pkg-config \
+    git \
+    curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Neovim (x86_64 build)
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz \
+    && tar -C /opt -xzf nvim-linux-x86_64.tar.gz \
+    && rm nvim-linux-x86_64.tar.gz \
+    && ln -s /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
 
-# ==================================================
-# Docker CLI
-# ==================================================
+# Optional: install tree-sitter CLI, ripgrep, fd if you have binaries or packages
+# For now, keeping it minimal; add more installs here if needed.
 
-RUN install -m 0755 -d /etc/apt/keyrings && \
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-        -o /etc/apt/keyrings/docker.asc && \
-    chmod a+r /etc/apt/keyrings/docker.asc && \
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-      https://download.docker.com/linux/ubuntu \
-      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-      > /etc/apt/sources.list.d/docker.list && \
-    apt-get update && \
-    apt-get install -y docker-ce-cli && \
-    rm -rf /var/lib/apt/lists/*
-
-
-# ==================================================
-# Neovim
-# ==================================================
-
-RUN cd /tmp && \
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz && \
-    tar xzf nvim-linux-x86_64.tar.gz && \
-    cp -r nvim-linux-x86_64/* /usr/local/ && \
-    rm -rf nvim-linux-x86_64*
-
-
-# ==================================================
-# Tree-sitter CLI
-# ==================================================
-
-RUN cd /tmp && \
-    curl -LO https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-x64.gz && \
-    gunzip tree-sitter-linux-x64.gz && \
-    chmod +x tree-sitter-linux-x64 && \
-    mv tree-sitter-linux-x64 /usr/local/bin/tree-sitter && \
-    rm -f /tmp/tree-sitter-linux-x64
-
-
-# ==================================================
-# Shell configuration
-# ==================================================
-
-RUN echo 'export PATH="/usr/local/bin:$PATH"' >> /root/.bashrc && \
-    echo "PS1='\\u@\\h:\\w \\$ '" >> /root/.bashrc && \
-    echo 'alias ll="ls -lah"' >> /root/.bashrc && \
-    echo 'alias la="ls -A"' >> /root/.bashrc && \
-    echo 'alias l="ls -CF"' >> /root/.bashrc
-
-
-# ==================================================
-# Neovim configuration
-# ==================================================
-
-RUN mkdir -p /root/.config/nvim
-
-COPY nvim/init.lua /root/.config/nvim/init.lua
-
-
-# ==================================================
-# Workspace
-# ==================================================
-
+# Neovim config
 WORKDIR /workspace
+COPY nvim /root/.config/nvim
 
+# Code directory (mounted via volume in compose)
+WORKDIR /root/code
 
-# ==================================================
-# Start shell
-# ==================================================
-
-CMD ["/bin/bash"]
+# Default: start an interactive shell so the container stays alive.
+# You can then compile/run/debug your program manually:
+#   gcc -g test.c -o sfss_headless_cli
+#   gdb ./sfss_headless_cli
+ENTRYPOINT ["/bin/bash"]
+CMD ["-l"]
