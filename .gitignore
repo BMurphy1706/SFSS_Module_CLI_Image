@@ -1,0 +1,29 @@
+# Whitelist system - Ignore all by default
+*
+
+# Allow essential repository meta files
+!.gitignore
+!README.md
+
+# Allow Docker configuration files
+!Dockerfile
+!compose.yml
+!docker-compose.yml
+
+# Allow the Neovim configuration directory and its contents
+!nvim/
+!nvim/**
+
+# Allow source code files inside your working directory
+!code/
+!code/**/*.c
+!code/**/*.h
+!code/**/*.py
+!code/**/Makefile
+
+# Explicitly ignore compiled binaries, object files, and temporary dumps inside code/
+code/*.o
+code/*.out
+code/*_server
+code/*_client
+code/core
