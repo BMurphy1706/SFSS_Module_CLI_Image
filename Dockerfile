@@ -39,6 +39,19 @@ RUN echo '#!/bin/bash\nif [ -z "$1" ]; then echo "Usage: dbg-build32 <file.c> [o
     echo '#!/bin/bash\ndbg-client32 "$@"' > /usr/local/bin/dbg-client && \
     chmod +x /usr/local/bin/dbg-*
 
+# Neovim (x86_64 build)
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz \
+    && tar -C /opt -xzf nvim-linux-x86_64.tar.gz \
+    && rm nvim-linux-x86_64.tar.gz \
+    && ln -s /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+
+# Optional: install tree-sitter CLI, ripgrep, fd if you have binaries or packages
+# For now, keeping it minimal; add more installs here if needed.
+
+# Neovim config
+WORKDIR /workspace
+COPY nvim /root/.config/nvim
+
 # Code directory (mounted via volume in compose)
 WORKDIR /root/code
 

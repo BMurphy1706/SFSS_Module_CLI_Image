@@ -24,7 +24,8 @@ This setup is required because the module labs require an x86 environment and st
 sfss_headless_cli/
 ├── Dockerfile
 ├── docker-compose.yml
-└── README.md
+└── README.md└── nvim/
+    └── init.lua
 ```
 
 ## Architecture
@@ -62,6 +63,41 @@ apt-get install -y \
     file \
     strace
 ```
+
+## Neovim
+
+Neovim is installed directly from the official Neovim release rather than Ubuntu's package repository.
+
+The configuration is copied into:
+
+```text
+/root/.config/nvim/init.lua
+```
+
+The configuration uses Neovim's native `vim.pack` system to install its plugins.
+
+## Clangd LSP
+
+`clangd` provides C and C++ language-server functionality for Neovim.
+
+The Neovim configuration enables only `clangd`:
+
+```lua
+vim.lsp.enable({
+    "clangd",
+})
+```
+
+This provides features such as:
+
+* Code completion
+* Diagnostics
+* Go to definition
+* Find references
+* Symbol information
+* Code formatting
+
+No additional language servers or Mason are required.
 
 ## Building
 
