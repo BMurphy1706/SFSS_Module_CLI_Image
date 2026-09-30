@@ -1,4 +1,3 @@
-```markdown
 # sfss_headless_cli
 
 A minimal Ubuntu 24.04 headless development and debugging environment for C/C++ through Docker.
@@ -263,12 +262,10 @@ docker run -it \
   --name sfss_headless_cli \
   -v "$PWD":/root/code \
   sfss_headless_cli
-```
 
 Inside the container run the same helper commands:
 
 ```bash
 dbg-build-32 test.c -o test32
 dbg-server-32 test32
-```
 ```
