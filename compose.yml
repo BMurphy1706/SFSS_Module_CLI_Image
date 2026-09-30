@@ -11,6 +11,6 @@ services:
     cap_add:
       - SYS_PTRACE
     security_opt:
-      - seccomp:unconfined
+      - seccomp=unconfined
     stdin_open: true
     tty: true
